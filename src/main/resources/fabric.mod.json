@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "openp2p",
+  "version": "${version}",
+  "name": "OpenP2P 联机",
+  "description": "基于 OpenP2P 的我的世界 1.20.1 Fabric 联机模组：主机在“对局域网开放”界面一键开启分享，好友在多人游戏界面输入 UID 即可联机。",
+  "authors": [
+    "gld"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Rttgithu/openp2p-mc-fabric",
+    "sources": "https://github.com/Rttgithu/openp2p-mc-fabric",
+    "issues": "https://github.com/Rttgithu/openp2p-mc-fabric/issues"
+  },
+  "license": "GPL-3.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.gld.openp2p.OpenP2PMod"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "openp2p.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.20.1",
+    "java": ">=17"
+  }
+}
