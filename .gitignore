@@ -1,0 +1,14 @@
+.gradle/
+build/
+run/
+out/
+.idea/
+*.iml
+.vscode/
+bin/
+
+# 工作区本地数据（含会话笔记、临时脚本），不进公开仓库
+.workbuddy/
+
+# 内部开发记忆文档，含本地绝对路径（项目根、游戏目录），不进公开仓库
+PROJECT_SUMMARY.md
