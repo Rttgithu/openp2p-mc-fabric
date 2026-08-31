@@ -1,0 +1,18 @@
+# 二进制资源，禁止换行转换与 diff
+*.exe binary
+*.jar binary
+*.png binary
+*.ico binary
+
+# 文本统一以 LF 入库，检出时按平台转换
+*.java text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.gradle text eol=lf
+*.properties text eol=lf
+gradlew text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Windows 脚本必须保留 CRLF
+*.bat text eol=crlf
