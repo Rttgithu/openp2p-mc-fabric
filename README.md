@@ -1,5 +1,8 @@
 # OpenP2P 远程联机模组（我的世界 1.20.1 Fabric）
 
+[![最新 Release](https://img.shields.io/github/v/release/Rttgithu/openp2p-mc-fabric?label=Download&color=blue)](https://github.com/Rttgithu/openp2p-mc-fabric/releases/latest)
+[![许可证 GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 > ### 使用前请先看这三条
 >
 > **1. 联机中继默认走一组预设账号。** 模组默认使用一组预设的 OpenP2P 中继接入参数
