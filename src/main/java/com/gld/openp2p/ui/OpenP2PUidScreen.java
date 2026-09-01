@@ -91,7 +91,7 @@ public class OpenP2PUidScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 24, 0xFFFFFF);
         context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("默认等于你的游戏 ID，可改成任意字母数字下划线"), this.width / 2, 46, 0xA0A0A0);
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("真实节点名会自动附加统一隐藏后缀（如 -op2pmc），无需自己加"), this.width / 2, 94, 0x777777);
+        context.drawCenteredTextWithShadow(this.textRenderer, Text.literal("真实节点名会自动附加统一隐藏后缀（如 -openp2pmc），无需自己加"), this.width / 2, 94, 0x777777);
     }
 
     @Override

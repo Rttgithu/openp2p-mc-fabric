@@ -67,18 +67,29 @@ public final class NodeManager {
 
     /**
      * 隐藏的统一 UID 后缀：所有本模组玩家相同，主机/联机端自动补全，玩家无需输入。
-     * 真实节点名 = 显示 UID（游戏ID或自定义）+ 本后缀，从而大幅避免与他人撞名。
+     * 真实节点名 = 显示 UID（游戏ID或自定义）+ [冲突去重序号] + 本后缀，
+     * 从而大幅避免与他人撞名。
+     * <p>
+     * 名字冲突时，OpenP2P 服务器会把我们的节点重命名（在其内部加一个去重序号）。
+     * 为避免服务器把序号加在隐藏后缀“之后”（形如 displayUid-op2pmc-1，导致好友端
+     * normalizePeerUid 二次补后缀后匹配不上），本模组主动在隐藏后缀“之前”插入去重序号
+     * （形如 displayUid-1-openp2pmc），并自动重试直到服务器原样接受我们给的名字。
      */
-    public static final String UID_SUFFIX = "-op2pmc";
+    public static final String UID_SUFFIX = "-openp2pmc";
 
     /** 显示 UID（游戏 ID 或自定义） */
     public String displayUid() {
         return effectiveUid();
     }
 
-    /** 自己的真实节点名 = 显示 UID + 隐藏后缀 */
+    /** 自己的真实节点名 = 显示 UID + [冲突去重序号] + 隐藏后缀（序号为 0 时省略） */
     public String nodeUid() {
-        return appendSuffix(effectiveUid());
+        return nodeUidWith(conflictIndex);
+    }
+
+    private String nodeUidWith(int idx) {
+        String base = effectiveUid();
+        return base + (idx > 0 ? "-" + idx : "") + UID_SUFFIX;
     }
 
     /** 把玩家输入的 UID 规范化为真实节点名（自动补后缀；已带后缀则不重复加） */
@@ -91,6 +102,14 @@ public final class NodeManager {
             return base;
         }
         return base.endsWith(UID_SUFFIX) ? base : base + UID_SUFFIX;
+    }
+
+    /** 去掉隐藏后缀，得到给玩家看的“干净”显示名（如 displayUid-1；冲突重试耗尽等极端情况按原值返回） */
+    private static String displayNameOf(String actualUid) {
+        if (actualUid != null && actualUid.endsWith(UID_SUFFIX)) {
+            return actualUid.substring(0, actualUid.length() - UID_SUFFIX.length());
+        }
+        return actualUid;
     }
 
     private final Object lock = new Object();
@@ -109,6 +128,13 @@ public final class NodeManager {
     private volatile int localPort;
     private volatile boolean announced;
     private volatile boolean tunnelNotified;
+
+    /** 名字冲突时自动去重的序号：插入到隐藏后缀“之前”（如 displayUid-1-openp2pmc），0 表示未冲突 */
+    private volatile int conflictIndex = 0;
+    /** 最近一次 writeConfig 使用的 apps（冲突重试时复用，仅 Node 名随 conflictIndex 变化） */
+    private JsonArray pendingApps = new JsonArray();
+    /** 冲突自动重试上限，避免极端情况下无限重试 */
+    private static final int MAX_CONFLICT_RETRY = 20;
 
     /** 联机失败/对方不在线的明显提示（界面顶部显示，直到下次操作） */
     private volatile boolean peerOfflineWarned;
@@ -249,13 +275,15 @@ public final class NodeManager {
             peerUid = null;
             announced = false;
             tunnelNotified = false;
+            conflictIndex = 0;
             pendingJoinPort = -1;
             tunnelUpSince = 0;
             peerOfflineWarned = false;
             lastFailureText = null;
             lastError = "";
             log("===== 开启 OpenP2P 分享  UID=" + effectiveUid() + "（内部名 " + nodeUid() + "）端口=" + lanPort + " =====");
-            writeConfig(new JsonArray());
+            pendingApps = new JsonArray();
+            writeConfig(pendingApps);
             launch();
         }
     }
@@ -270,6 +298,7 @@ public final class NodeManager {
             localPort = local;
             announced = false;
             tunnelNotified = false;
+            conflictIndex = 0;
             pendingJoinPort = local;
             pendingJoinUid = uid;
             pendingJoinTime = System.currentTimeMillis();
@@ -279,7 +308,8 @@ public final class NodeManager {
             lastError = "";
             log("===== 点击列表项：连接 OpenP2P 主机 " + uid + "（内部名 " + fullPeer + "）:" + dstPort
                     + "  本地端口=" + local + " =====");
-            writeConfig(oneApp(fullPeer, dstPort, local));
+            pendingApps = oneApp(fullPeer, dstPort, local);
+            writeConfig(pendingApps);
             launch();
         }
     }
@@ -489,17 +519,31 @@ public final class NodeManager {
             Matcher m = NODE_LOGIN.matcher(raw);
             String actualUid = m.find() ? m.group(1) : nodeUid();
             log("已登录 OpenP2P 服务器，实际 UID=" + actualUid);
+
+            // 名字冲突：服务器把我们的节点重命名了（重命名后缀被加到了隐藏后缀之后）。
+            // 这里自动加一个去重序号到隐藏后缀“之前”，并重启节点重试，直到服务器原样接受我们给的名字。
+            synchronized (lock) {
+                if (!actualUid.equals(nodeUid()) && conflictIndex < MAX_CONFLICT_RETRY) {
+                    conflictIndex++;
+                    String candidate = nodeUid();
+                    log("名字与他人冲突（服务器重命名为 " + actualUid + "），自动加去重序号重试为 " + candidate);
+                    writeConfig(pendingApps);
+                    launch();
+                    return;
+                }
+            }
+
             boolean host = sharing;
             if (host && !announced) {
                 announced = true;
-                String display = effectiveUid();
-                if (actualUid.equals(nodeUid())) {
+                // 播报给好友的是“干净”的显示名（去掉隐藏后缀 openp2pmc，好友端会自动补回）
+                String display = displayNameOf(actualUid);
+                if (conflictIndex == 0) {
                     OpenP2PMod.get().sendChat("§aOpenP2P 远程联机已开启! §r告诉好友你的 §eUID=" + display
                             + " §r和 §e端口=" + sharePort);
                 } else {
-                    // 名字与别人冲突被自动加后缀，必须用实际注册名
-                    OpenP2PMod.get().sendChat("§aOpenP2P 远程联机已开启! §r你的名字与他人冲突，"
-                            + "实际注册名为 §e" + actualUid + "§r（端口=§e" + sharePort + "§r），请把完整注册名发给好友");
+                    OpenP2PMod.get().sendChat("§aOpenP2P 远程联机已开启! §r你的名字与他人冲突，已自动改为 §e"
+                            + display + "§r（端口=§e" + sharePort + "§r），请把这个 UID 发给好友");
                 }
             }
             return;

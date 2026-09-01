@@ -37,8 +37,8 @@
 4. 需要修改时点「编辑」→ 自己的编辑界面（对方 UID + 端口）
 
 ### UID
-默认 = 你的游戏 ID；真实节点名会自动附加统一隐藏后缀 `-op2pmc`（两端自动补齐，无需输入）。
-可在「UID 设置」中修改；若名字与他人冲突，以聊天栏提示的实际注册名为准。
+默认 = 你的游戏 ID；真实节点名会自动附加统一隐藏后缀 `-openp2pmc`（两端自动补齐，无需输入）。
+可在「UID 设置」中修改；若名字与他人冲突，模组会自动加去重序号（如 `你的ID-1`）并播报干净的 UID，把聊天栏提示的 UID 发给好友即可。
 
 ## 安全与生命周期
 
@@ -78,7 +78,7 @@
 ```
 ./gradlew build
 ```
-产物：`build/libs/openp2p-mc-1.0.33.jar`（需要 Fabric Loader 0.15+，无需 Fabric API）。
+产物：`build/libs/openp2p-mc-1.0.34.jar`（需要 Fabric Loader 0.15+，无需 Fabric API）。
 版本号以 [gradle.properties](gradle.properties) 中的 `mod_version` 为准。
 
 详细设计与版本历史见 [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)。
