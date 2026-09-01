@@ -78,7 +78,7 @@
 ```
 ./gradlew build
 ```
-产物：`build/libs/openp2p-mc-1.0.34.jar`（需要 Fabric Loader 0.15+，无需 Fabric API）。
+产物：`build/libs/openp2p-mc-1.0.35.jar`（需要 Fabric Loader 0.15+，无需 Fabric API）。
 版本号以 [gradle.properties](gradle.properties) 中的 `mod_version` 为准。
 
 详细设计与版本历史见 [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)。
