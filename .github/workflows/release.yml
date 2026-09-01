@@ -39,12 +39,20 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Derive version (strip leading v)
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             build/libs/*.jar
-          generate_release_notes: true
+          body: |
+            ## ✅ 只想联机？下载这个
+            **下载 `openp2p-mc-${{ steps.ver.outputs.version }}.jar`**（文件名里**没有** `-sources`），放进 Minecraft 的 `mods` 文件夹即可，需要 Fabric Loader 0.15+（无需 Fabric API）。节点程序已内置，无需另装任何东西。
+            ## ❌ 不要下载这个
+            `openp2p-mc-${{ steps.ver.outputs.version }}-sources.jar` 是**源码包**，仅供开发者查看 / 二次构建，**不能当 mod 用**，放进去游戏也读不到。
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

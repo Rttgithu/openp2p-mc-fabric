@@ -22,6 +22,11 @@
 基于 [OPL-WpfApp](https://github.com/Guailoudou/OPL-WpfApp) 的 OpenP2P 用法实现的联机模组。
 **只装这一个 jar 就能用**：节点程序已内置在模组包里（Windows 免下载、免管理员权限），无需安装任何外部程序。
 
+## 下载与安装（玩家必读）
+
+- ✅ **只想联机：下载 [`openp2p-mc-1.0.35.jar`](https://github.com/Rttgithu/openp2p-mc-fabric/releases/latest)**，放进 Minecraft 的 `mods` 文件夹即可（需要 Fabric Loader 0.15+，无需 Fabric API）。节点程序已内置，无需另装任何东西。
+- ❌ **不要下载 `openp2p-mc-1.0.35-sources.jar`**：那一栏是**源码包**，仅供开发者查看 / 二次构建，**不能当 mod 用**，丢进 `mods` 游戏也读不到。
+
 ## 使用
 
 ### 主机（开房）
